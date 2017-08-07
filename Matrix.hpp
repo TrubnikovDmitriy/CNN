@@ -72,12 +72,13 @@ Matrix<T>::Matrix(vector<vector<T>> _matrix): matrix(_matrix) {
 template <class T>
 Matrix<T> Matrix<T>::convolution(const Matrix<T>& kernel) {
 
+    assert(matrix.size() > 0);
     assert(kernel.matrix.size() > 0);
 
     // Проверяем, что ядро свертки меньше сворачиваемой
     // матрицы, заодно получаем размер результирующей
-    int new_width = (int)(matrix.size() - kernel.matrix.size() + 1);
-    int new_high = (int)(matrix[0].size() - kernel.matrix[0].size() + 1);
+    int new_high = (int)matrix.size() - (int)kernel.matrix.size() + 1;
+    int new_width = (int)matrix[0].size() - (int)kernel.matrix[0].size() + 1;
     assert(new_width > 0);
     assert(new_high > 0);
 
@@ -87,14 +88,14 @@ Matrix<T> Matrix<T>::convolution(const Matrix<T>& kernel) {
 
     // Поэлементное умножение (свёртка) матриц
     float sum = 0;
-    float slag = 0;
+    float add = 0;
     for (int i = 0; i < new_high; ++i) {
         for (int j = 0; j < new_width; ++j) {
             sum = 0;
             for (u_int ii = 0; ii < kernel.matrix.size(); ++ii) {
                 for (u_int jj = 0; jj < kernel.matrix[0].size(); ++jj) {
-                    slag = matrix[i + ii][j + jj] * kernel.matrix[ii][jj];
-                    sum += slag;
+                    add = matrix[i + ii][j + jj] * kernel.matrix[ii][jj];
+                    sum += add;
                 }
             }
             result[i].push_back(sum);
