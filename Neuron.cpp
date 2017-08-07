@@ -25,7 +25,7 @@ float HiddenNeuron::getOut() {
 void HiddenNeuron::calculate() {
 
     // Суммируем все входные сигналы от синапсов
-    sum = 0;
+    float sum = 0;
     for(auto inputSynapce: inputSynapces)
         sum += inputSynapce->getOutput();
 

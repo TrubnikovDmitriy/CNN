@@ -50,7 +50,6 @@ public:
 
 private:
     std::vector<Synapse*> inputSynapces;
-    float sum;
     float out;
 };
 
