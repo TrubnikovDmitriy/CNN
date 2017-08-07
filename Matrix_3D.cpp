@@ -72,6 +72,11 @@ void Matrix_3D::operator+=(const Matrix_3D &value) {
     for (u_int i = 0; i < depth; ++i)
         matrix_3D[i] += value.matrix_3D[i];
 }
+Matrix<float>& Matrix_3D::operator[](const u_int _depth) {
+
+    assert(_depth < depth);
+    return matrix_3D[_depth];
+}
 
 // Свертка
 Matrix<float> Matrix_3D::convolution(const Matrix_3D &kernel) {

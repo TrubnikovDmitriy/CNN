@@ -19,6 +19,15 @@ int main() {
     kernel.printMatrix_3D();
     printf("H = %d, W = %d, D = %d\n", kernel.getHigh(), kernel.getWidth(), kernel.getDepth());
 
+    kernel(2, 1, 1) = 150.1f;
+    kernel[0] = kernel[1];
+    for (u_int i = 0; i < kernel.getDepth(); ++i) {
+        kernel[i].printMatrix();
+    }
+
+    cout << kernel(2, 1, 1) << endl;
+
+    kernel.printMatrix_3D();
 
     return 0;
 }

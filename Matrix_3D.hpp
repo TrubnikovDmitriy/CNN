@@ -14,6 +14,7 @@ public:
 
     // Операторы
     float& operator()(const u_int h, const u_int w, const u_int d);
+    Matrix<float>& operator[](const u_int depth);
     Matrix_3D operator+(const Matrix_3D& right);
     void operator=(const Matrix_3D& value);
     void operator+=(const Matrix_3D& value);
