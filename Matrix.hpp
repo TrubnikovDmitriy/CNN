@@ -46,13 +46,15 @@ template <class T>
 Matrix<T>::Matrix(u_int _high, u_int _width, bool random): high(_high),
                                                            width(_width) {
 
-    srand((u_int)time(0));
+    assert(high > 0);
+    assert(width > 0);
+
     vector<T> temp(width, 0);
 
     for (u_int i = 0; i < high; ++i) {
         if (random) {
             for (u_int j = 0; j < width; ++j)
-                temp[j] = (T)(rand() % 20) - 10;
+                temp[j] = (T)((rand() % 20) - 10);
         }
         matrix.push_back(temp);
     }
