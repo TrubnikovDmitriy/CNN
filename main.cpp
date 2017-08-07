@@ -32,5 +32,19 @@ int main() {
     cout << endl << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << endl;
 
 
+    cout << "ReLU" << endl;
+    RectifierLayer ReLU(2, -0.0f);
+    ReLU.work(convol.getOut());
+    ReLU.getOut().printMatrix_3D();
+    cout << endl << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << endl;
+
+    cout << "Pool" << endl;
+    PoolingLayer pool(2, 2);
+    pool.work(ReLU.getOut());
+    pool.getOut().printMatrix_3D();
+    cout << endl << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << endl;
+
+
+
     return 0;
 }

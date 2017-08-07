@@ -1,5 +1,5 @@
 #include "Layers.hpp"
-#include <ctime>
+#include <algorithm>
 #include <random>
 
 
@@ -47,7 +47,7 @@ vector<float> OutputLayer::getOut() {
 
 // ConvolutionalLayer
 ConvolutionalLayer::ConvolutionalLayer(u_int size, u_int width, u_int high, u_int depth):
-                                                Layer(layers::convolutional), feature_maps(depth) {
+                                                Layer(layers::convolutional), feature_maps(size) {
 
     for (u_int i = 0; i < size; ++i) {
         filters.push_back(Matrix_3D(width, high, depth, true));
@@ -102,4 +102,87 @@ void ConvolutionalLayer::updateKernel(vector<Matrix_3D> deltaWeights, float mome
 
         prevDeltaWeights[i] = deltaWeights[i];
     }
+}
+
+// RectifierLayer
+RectifierLayer::RectifierLayer(u_int size, float _ratio): Layer(layers::ReLU),
+                                                                            ratioReLU(_ratio),
+                                                                            output_data(size) {
+
+    assert(size > 0);
+
+    for (u_int i = 0; i < size; ++i)
+        bias_neurons.push_back(1.0f);
+
+}
+void RectifierLayer::work(Matrix_3D input_data) {
+
+    assert(bias_neurons.size() == input_data.getDepth());
+
+    for (u_int d = 0; d < input_data.getDepth(); ++d) {
+        output_data[d] = input_data[d];
+        for (u_int w = 0; w < input_data.getWidth(); ++w) {
+            for (u_int h = 0; h < input_data.getHigh(); ++h) {
+                output_data(h, w, d) = rectifier(input_data(h, w, d) + bias_neurons[d]);
+            }
+        }
+    }
+}
+Matrix_3D RectifierLayer::getOut() {
+    return output_data;
+}
+float RectifierLayer::rectifier(float x) {
+
+    return std::max(ratioReLU * x, x);
+}
+
+
+// PoolingLayer
+PoolingLayer::PoolingLayer(u_int size, u_int _step): Layer(layers::pooling),
+                                                     step(_step), output(size) {}
+Matrix_3D PoolingLayer::getOut() {
+
+    assert(output.getHigh() != 0);
+    assert(output.getWidth() != 0);
+    
+    return output;
+}
+void PoolingLayer::work(Matrix_3D input) {
+    
+    assert(output.getDepth() == input.getDepth());
+    
+    u_int new_width = input.getWidth() / step;
+    u_int new_high = input.getHigh() / step;
+    
+    if (input.getWidth() % step != 0) ++new_width;
+    if (input.getHigh() % step != 0) ++new_high;
+
+    Matrix_3D pooling_matrix(new_high, new_width, input.getDepth());
+
+    for (u_int d = 0; d < input.getDepth(); ++d) {
+        for (u_int w = 0; w < input.getWidth(); w += step) {
+            for (u_int h = 0; h < input.getHigh(); h += step) {
+                pooling_matrix(h / step, w / step, d) = getMax(input, h, w, d);
+            }
+        }
+        output[d] = pooling_matrix[d];
+    }
+    
+    
+}
+float PoolingLayer::getMax(Matrix_3D& input, u_int h, u_int w, u_int d) {
+
+    float max_value = 0.0f;
+
+    for (u_int i = h; i < h + step; ++i) {
+        for (u_int j = w; j < w + step; ++j) {
+
+            if (i < input.getHigh() && j < input.getWidth()) {
+                if (max_value < input(i, j, d))
+                    max_value = input(i, j, d);
+            }
+        }
+    }
+
+    return max_value;
 }

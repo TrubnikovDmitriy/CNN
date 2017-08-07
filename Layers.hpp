@@ -65,6 +65,34 @@ private:
     vector<Matrix_3D> filters;
     vector<Matrix_3D> prevDeltaWeights;
 };
+class RectifierLayer: protected Layer {
+public:
+    RectifierLayer(u_int size, float ratio = -0.0f);
+    ~RectifierLayer() {};
+
+    void work(Matrix_3D input_data);
+    Matrix_3D getOut();
+
+private:
+    float rectifier(float x);
+    const float ratioReLU;
+
+    vector<float> bias_neurons;
+    Matrix_3D output_data;
+};
+class PoolingLayer: protected Layer {
+public:
+    PoolingLayer(u_int size, u_int step);
+    ~PoolingLayer() {};
+
+    void work(Matrix_3D input);
+    Matrix_3D getOut();
+
+private:
+    float getMax(Matrix_3D& input, u_int h, u_int w, u_int d);
+    const unsigned int step;
+    Matrix_3D output;
+};
 
 
 
