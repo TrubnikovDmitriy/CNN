@@ -46,60 +46,59 @@ vector<float> OutputLayer::getOut() {
 }
 
 // ConvolutionalLayer
-ConvolutionalLayer::ConvolutionalLayer(u_int size, u_int width, u_int high):
-                                                Layer(layers::convolutional) {
+ConvolutionalLayer::ConvolutionalLayer(u_int size, u_int width, u_int high, u_int depth):
+                                                Layer(layers::convolutional), feature_maps(depth) {
 
     for (u_int i = 0; i < size; ++i) {
-        convKernels.push_back(Matrix<float>(width, high, true));
-        prevDeltaWeights.push_back(Matrix<float>(width, high));
+        filters.push_back(Matrix_3D(width, high, depth, true));
+        prevDeltaWeights.push_back(Matrix_3D(width, high, depth, false));
     }
 }
-void ConvolutionalLayer::work(vector<Matrix<float>> input_data) {
+void ConvolutionalLayer::work(Matrix_3D input_data) {
 
-    assert(input_data.size() != 0);
-    outMatrixes.clear();
+    // На вход подается 3х-мерное изображение (высота, ширина, глубина - ex.RGB)
+    // Внутри свёрточного слоя имеется вектор трёхмерных фильтров (т.е. 4х-мерный свёрточный слой)
+    // Глубина входного изображения и глубина каждого из фильтров ДОЛЖНЫ совпадать.
+    // Каждый трехмерный фильтр сворачивается с трехмерный изображением,
+    // в результате получается 2х-мерная матрица свойств (feature maps).
+    // Выход определяется количеством фильтров и является вектором из feature maps (т.е. 3х-мерным)
 
-    // Каждон входное изображение нужно прогнать через ядро свертки,
-    // а затем сложить результаты. И так для каждой свертки
-    // (предполагается, что размерности входных данных одинаковы).
+    for (u_int i = 0; i < filters.size(); ++i)
+        feature_maps[i] = input_data.convolution(filters[i]);
 
-    for (auto convKernel: convKernels) {
-        // Создаем нулевую матрицу для суммирования
-        Matrix<float> sum(input_data[0].getHigh() - convKernel.getHigh() + 1,
-                          input_data[0].getWidth() - convKernel.getWidth() + 1);
-
-        // Складываем результаты свертки входных данных с данным фильтром
-        for (auto input_matrix: input_data)
-            sum += input_matrix.convolution(convKernel);
-
-        // Добавляем полученную матрицу в выходной вектор (кол-во выходов = кол-ву фильтров)
-        outMatrixes.push_back(sum);
-    }
+    // За двумя строчками скрыто дофигища операций
 }
 
-vector<Matrix<float>> ConvolutionalLayer::getOut() {
-    return outMatrixes;
+Matrix_3D ConvolutionalLayer::getOut() {
+
+    assert(feature_maps.getHigh() != 0);
+    assert(feature_maps.getWidth() != 0);
+    assert(feature_maps.getDepth() != 0);
+
+    return feature_maps;
 }
-vector<Matrix<float>> ConvolutionalLayer::getKernels() {
-    return convKernels;
+vector<Matrix_3D>ConvolutionalLayer::getFilters() {
+    return filters;
 }
-void ConvolutionalLayer::updateKernel(vector<Matrix<float>> deltaWeights, float moment) {
+void ConvolutionalLayer::updateKernel(vector<Matrix_3D> deltaWeights, float moment) {
 
     // Для каждого фильтра обновляем веса
-    assert(convKernels.size() == deltaWeights.size());
+    assert(filters.size() == deltaWeights.size());
 
     for (size_t i = 0; i < deltaWeights.size(); ++i) {
 
-        assert(convKernels[i].getWidth() == deltaWeights[i].getWidth());
-        assert(convKernels[i].getHigh() == deltaWeights[i].getHigh());
+        assert(filters[i].getHigh() == deltaWeights[i].getHigh());
+        assert(filters[i].getWidth() == deltaWeights[i].getWidth());
+        assert(filters[i].getDepth() == deltaWeights[i].getDepth());
 
         // На вход подаются направления градиента,
         // т.е. значения, на которые нужно уменьшить матрицу весов
         // (с учетом коэффициента момента инерции).
 
-        for (u_int h = 0; h < convKernels[i].getHigh(); ++h)
-            for (u_int w = 0; w < convKernels[i].getWidth(); ++w)
-                convKernels[i](h, w) -= deltaWeights[i](h, w) + moment * prevDeltaWeights[i](h, w);
+        for (u_int h = 0; h < filters[i].getHigh(); ++h)
+            for (u_int w = 0; w < filters[i].getWidth(); ++w)
+                for (u_int d = 0; d < filters[i].getDepth(); ++d)
+                    filters[i](h, w, d) -= deltaWeights[i](h, w, d) + moment * prevDeltaWeights[i](h, w, d);
 
         prevDeltaWeights[i] = deltaWeights[i];
     }

@@ -31,7 +31,7 @@
 
 # Executables
 *.exe
-*.out
+*.feature_maps
 *.app
 *.i*86
 *.x86_64
@@ -98,7 +98,7 @@ cmake-build-debug
 ## Plugin-specific files:
 
 # IntelliJ
-/out/
+/feature_maps/
 
 # mpeltonen/sbt-idea plugin
 .idea_modules/

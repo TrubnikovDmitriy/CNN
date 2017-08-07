@@ -10,24 +10,27 @@ int main() {
 
     srand((u_int)time(0));
 
-    Matrix_3D kernel1(5, 4, 3, true);
-    kernel1.printMatrix_3D();
-    Matrix_3D kernel2(5, 4, 3, true);
-    kernel2.printMatrix_3D();
+    cout << "Input data" << endl;
+    Matrix_3D input_data(5, 4, 3, true);
+    input_data.printMatrix_3D();
+    cout << endl << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << endl;
 
-    Matrix_3D kernel = kernel1 + kernel2;
-    kernel.printMatrix_3D();
-    printf("H = %d, W = %d, D = %d\n", kernel.getHigh(), kernel.getWidth(), kernel.getDepth());
 
-    kernel(2, 1, 1) = 150.1f;
-    kernel[0] = kernel[1];
-    for (u_int i = 0; i < kernel.getDepth(); ++i) {
-        kernel[i].printMatrix();
+    cout << "Два фильтра" << endl;
+    ConvolutionalLayer convol(2, 2, 2, 3);
+    vector<Matrix_3D> filters = convol.getFilters();
+    for (u_int i = 0; i < filters.size(); ++i) {
+        filters[i].printMatrix_3D();
+        cout << endl;
     }
+    cout << endl << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << endl;
 
-    cout << kernel(2, 1, 1) << endl;
 
-    kernel.printMatrix_3D();
+    cout << "Output data" << endl;
+    convol.work(input_data);
+    convol.getOut().printMatrix_3D();
+    cout << endl << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << endl;
+
 
     return 0;
 }

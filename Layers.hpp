@@ -3,7 +3,7 @@
 
 #include <iostream>
 #include "Neuron.hpp"
-#include "Matrix.hpp"
+#include "Matrix_3D.hpp"
 
 using std::vector;
 enum layers {
@@ -52,19 +52,18 @@ private:
 };
 class ConvolutionalLayer: protected Layer {
 public:
-    ConvolutionalLayer(u_int size, u_int width, u_int high);
+    ConvolutionalLayer(u_int size, u_int width, u_int high, u_int depth);
     ~ConvolutionalLayer() {};
 
-    void work(vector<Matrix<float>> input_data);
-    vector<Matrix<float>> getOut();
-    vector<Matrix<float>> getKernels();
-
-    void updateKernel(vector<Matrix<float>> deltaWeights, float moment);
+    void updateKernel(vector<Matrix_3D> deltaWeights, float moment);
+    void work(Matrix_3D input_data);
+    vector<Matrix_3D> getFilters();
+    Matrix_3D getOut();
 
 private:
-    vector<Matrix<float>> convKernels;
-    vector<Matrix<float>> prevDeltaWeights;
-    vector<Matrix<float>> outMatrixes;
+    Matrix_3D feature_maps;
+    vector<Matrix_3D> filters;
+    vector<Matrix_3D> prevDeltaWeights;
 };
 
 
