@@ -3,8 +3,9 @@
 
 #include <cmath>
 
-class Neuron;
 class Synapse;
+class Neuron;
+class HiddenNeuron;
 
 inline float activateFunction(float x) {
 

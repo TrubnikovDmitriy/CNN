@@ -4,12 +4,25 @@
 #include "Neuron.hpp"
 
 
-Synapse::Synapse(Neuron *_in, Neuron *_out) {
+Synapse::Synapse(Neuron *_in, HiddenNeuron *_out, float _weight): in(_in), out(_out) {
 
-    in = _in;
-    out = _out;
+    // Связь двусторонняя (!) синапс с нейронами, нейроны с синапсами.
+    // Синапс связывается со входным/выходным нейронами,
+    // указанные нейроны добавляют синапс в свои вектора входных/выходных синапсов.
+    // _weight - усстанавливает в текущее значение коэффициента синапса указанный вес.
+    // В случае, если _weight = 0 (по умолчанию), значение веса выбирается рандомно.
+
+    assert(in != nullptr);
+    assert(out != nullptr);
+
+    in->addOutputSynapce(this);
+    out->addInputSynapce(this);
+
     last_dw = 0;
-    weight = random() % 10 - 5;
+    if (_weight == 0.0f)
+        weight = random() % 10 - 5;
+    else
+        weight = _weight;
 }
 Synapse::Synapse() {
 

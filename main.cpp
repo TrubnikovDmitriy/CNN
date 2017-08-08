@@ -3,6 +3,7 @@
 #include "Layers.hpp"
 #include "Matrix.hpp"
 #include "Matrix_3D.hpp"
+#include "Neuron.hpp"
 
 using namespace std;
 
@@ -11,7 +12,7 @@ int main() {
     srand((u_int)time(0));
 
     cout << "Input data" << endl;
-    Matrix_3D input_data(5, 4, 3, true);
+    Matrix_3D input_data(7, 5, 3, true);
     input_data.printMatrix_3D();
     cout << endl << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << endl;
 
@@ -45,6 +46,31 @@ int main() {
     cout << endl << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << endl;
 
 
+    cout << "Transfer" << endl;
+    TransferLayer transfer(pool.getOut().getHigh(),
+                           pool.getOut().getWidth(),
+                           pool.getOut().getDepth());
+    transfer.work(pool.getOut());
+    for (auto value: transfer.getOut())
+        cout << value->getOut() << " ";
+    cout << endl;
+    cout << endl << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << endl;
+
+     cout << "Hidden #1" << endl;
+    HiddenLayer hidden1(transfer.getOut(), 10);
+    hidden1.work();
+    for (auto value: hidden1.getOut())
+        cout << value->getOut() << " ";
+    cout << endl;
+    cout << endl << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << endl;
+
+    cout << "Hidden #2" << endl;
+    HiddenLayer hidden2(hidden1.getOut(), 2);
+    hidden2.work();
+    for (auto value: hidden2.getOut())
+        cout << value->getOut() << " ";
+    cout << endl;
+    cout << endl << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << endl;
 
     return 0;
 }

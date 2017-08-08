@@ -22,7 +22,7 @@ void InputNeuron::setInput(float data) {
 float HiddenNeuron::getOut() {
     return out;
 }
-void HiddenNeuron::calculate() {
+void HiddenNeuron::work() {
 
     // Суммируем все входные сигналы от синапсов
     float sum = 0;

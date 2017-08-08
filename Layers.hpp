@@ -7,12 +7,12 @@
 
 using std::vector;
 enum layers {
-    hidden = 1,
-    output,
+    hidden = 0,
     convolutional,
     ReLU,
     pooling,
-    average
+    average,
+    transfer
 };
 
 class Layer {
@@ -28,27 +28,16 @@ protected:
 
 class HiddenLayer: protected Layer {
 public:
-    HiddenLayer(u_int _size);
-    ~HiddenLayer() {};
+    HiddenLayer(vector<Neuron*> input_neurons, u_int output_size);
+    ~HiddenLayer();
 
     void work();
-    vector<float> getOut();
+    vector<Neuron*> getOut();
 
 private:
-    const unsigned int size;
-    vector<HiddenNeuron*> neurons;
-};
-class OutputLayer: protected Layer {
-public:
-    OutputLayer(u_int _size);
-    ~OutputLayer() {};
-
-    void work();
-    vector<float> getOut();
-
-private:
-    const unsigned int size;
-    vector<HiddenNeuron*> neurons;
+    vector<HiddenNeuron*> output_neurons;
+    vector<BiasNeuron*> bias_neurons;
+    vector<Neuron*> output_data;
 };
 class ConvolutionalLayer: protected Layer {
 public:
@@ -92,6 +81,23 @@ private:
     float getMax(Matrix_3D& input, u_int h, u_int w, u_int d);
     const unsigned int step;
     Matrix_3D output;
+};
+class TransferLayer: protected Layer {
+public:
+    TransferLayer(u_int high, u_int width, u_int depth);
+    ~TransferLayer();
+
+    u_int getNeuronPosition(u_int h, u_int w, u_int d);
+    vector<Neuron*> getOut();
+    void work(Matrix_3D input);
+    u_int getSize();
+
+private:
+    vector<InputNeuron*> neurons;
+    vector<Neuron*> output_neurons;
+    const unsigned int high;
+    const unsigned int width;
+    const unsigned int depth;
 };
 
 

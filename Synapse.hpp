@@ -5,7 +5,7 @@
 
 class Synapse {
 public:
-    Synapse(Neuron* _in, Neuron* _out);
+    Synapse(Neuron* _in, HiddenNeuron* _out, float weight = 0.0f);
     Synapse();
     ~Synapse() {};
 
@@ -17,10 +17,10 @@ public:
     Neuron* getInputNeuron();
 
 private:
+    Neuron* in;
+    HiddenNeuron* out;
     float weight;
     float last_dw;
-    Neuron* in;
-    Neuron* out;
 };
 
 #endif //CONVOLUTIONAL_NEURAL_NETWORK_SYNAPSE_HPP

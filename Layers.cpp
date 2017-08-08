@@ -1,4 +1,5 @@
 #include "Layers.hpp"
+#include "Synapse.hpp"
 #include <algorithm>
 #include <random>
 
@@ -11,38 +12,57 @@ layers Layer::getType() {
     return type;
 }
 
+
 // HiddenLayer
-HiddenLayer::HiddenLayer(u_int _size):
-        Layer(layers::hidden), size(_size),
-        neurons(size, new HiddenNeuron()) {}
+HiddenLayer::HiddenLayer(vector<Neuron*> input_neurons, u_int out_size):
+                                                    Layer(layers::hidden) {
+
+    // На вход подается предыдущий слой, текущий и предыдущие
+    // слои жестко связываются с помощью синапсов.
+
+    // Создаются только ВХОДНЫЕ синапсы для текущего слоя!
+    // В деструкторе удаляются текущий слой нейронов
+    // и слой входных для него синапсов.
+
+    assert(input_neurons.size() != 0);
+
+
+    for (u_int i = 0; i < out_size; ++i) {
+
+        // Создание выходного нейрона
+        output_neurons.push_back(new HiddenNeuron());
+
+        // Связывание с помощью синапса двух нейроновов (входного и выходного).
+        for (auto input_neuron: input_neurons) {
+            new Synapse(input_neuron, output_neurons[i]);
+        }
+
+        // Навешиваем, дополнительно, нейрон-смещения на каждый выходной нейрон.
+        bias_neurons.push_back(new BiasNeuron());
+        new Synapse(bias_neurons[i], output_neurons[i], 1.0f);
+
+        // Костыль, ибо не получается привести класс
+        // к родительскому внутри вектора (см. TransferLayer)
+        Neuron* temp = output_neurons[i];
+        output_data.push_back(temp);
+    }
+}
+HiddenLayer::~HiddenLayer() {
+
+    for (auto output_neuron: output_neurons) {
+        for (auto synapse: output_neuron->getInputSynapses())
+            delete synapse;
+        delete output_neuron;
+    }
+    for (auto bias_neuron: bias_neurons)
+        delete bias_neuron;
+}
 void HiddenLayer::work() {
-    for(auto neuron: neurons)
-        neuron->calculate();
+    for (auto neuron: output_neurons)
+        neuron->work();
 }
-vector<float> HiddenLayer::getOut() {
-
-    vector<float> out;
-    for (auto neuron: neurons)
-        out.push_back(neuron->getOut());
-
-    return out;
-}
-
-// OutputLayer
-OutputLayer::OutputLayer(u_int _size):
-        Layer(layers::output), size(_size),
-        neurons(size, new HiddenNeuron()) {}
-void OutputLayer::work() {
-    for(auto neuron: neurons)
-        neuron->calculate();
-}
-vector<float> OutputLayer::getOut() {
-
-    vector<float> out;
-    for (auto neuron: neurons)
-        out.push_back(neuron->getOut());
-
-    return out;
+vector<Neuron*> HiddenLayer::getOut() {
+    return output_data;
 }
 
 // ConvolutionalLayer
@@ -136,7 +156,6 @@ float RectifierLayer::rectifier(float x) {
     return std::max(ratioReLU * x, x);
 }
 
-
 // PoolingLayer
 PoolingLayer::PoolingLayer(u_int size, u_int _step): Layer(layers::pooling),
                                                      step(_step), output(size) {}
@@ -185,4 +204,61 @@ float PoolingLayer::getMax(Matrix_3D& input, u_int h, u_int w, u_int d) {
     }
 
     return max_value;
+}
+
+// TransferLayer
+TransferLayer::TransferLayer(u_int h, u_int w, u_int d): Layer(layers::transfer),
+                                                         high(h), width(w), depth(d) {
+
+    // Переходной слой - переход от трехмерной матрицы к нейронам,
+    // при создании необходимо указать размер входной 3х-мерной матрицы.
+    // На вход подается матрица, на выходе - вектор нейронов.
+
+    assert(high && width && depth);
+
+    for (u_int i = 0; i < depth; ++i) {
+        for (u_int j = 0; j < width; ++j) {
+            for (u_int k = 0; k < high; ++k) {
+                neurons.push_back(new InputNeuron());
+
+                // Довольно странный костыль
+                // vector<DerivativeClass> никоим образом не хочет кастоваться к vector<BaseClass>,
+                // несмотря на то, что последний является родителем первого.
+
+                // Поэтому решено хранить два вектора с одинаковыми адресами
+                // указателей, но разными типами указателей.
+                Neuron* temp = neurons.back();
+                output_neurons.push_back(temp);
+            }
+        }
+    }
+
+}
+TransferLayer::~TransferLayer() {
+    for (auto neuron: neurons)
+        delete neuron;
+}
+void TransferLayer::work(Matrix_3D input) {
+
+    assert(depth == input.getDepth());
+    assert(width == input.getWidth());
+    assert(high == input.getHigh());
+
+    int k = 0;
+    for (u_int d = 0; d < depth; ++d) {
+        for (u_int w = 0; w < width; ++w) {
+            for (u_int h = 0; h < high; ++h) {
+                neurons[k++]->setInput(input(h, w, d));
+            }
+        }
+    }
+}
+u_int TransferLayer::getNeuronPosition(u_int h, u_int w, u_int d) {
+    return (h + high * w + high * width * d);
+}
+vector<Neuron*> TransferLayer::getOut() {
+    return output_neurons;
+}
+u_int TransferLayer::getSize() {
+    return high * width * depth;
 }
