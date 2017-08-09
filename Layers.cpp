@@ -67,14 +67,37 @@ vector<Neuron*> HiddenLayer::getOut() {
 }
 
 // ConvolutionalLayer
-ConvolutionalLayer::ConvolutionalLayer(u_int size, u_int width, u_int high, u_int depth): Layer(layers::convolutional),
+ConvolutionalLayer::ConvolutionalLayer(u_int filter_number, u_int high, u_int width, u_int depth): Layer(layers::convolutional),
                                                                                           InputMatrixLayer(layers::convolutional),
                                                                                           OutputMatrixLayer(layers::convolutional),
-                                                                                          feature_maps(size) {
+                                                                                          feature_maps(filter_number) {
 
-    for (u_int i = 0; i < size; ++i) {
-        filters.push_back(Matrix_3D(width, high, depth, true));
-        prevDeltaWeights.push_back(Matrix_3D(width, high, depth, false));
+    for (u_int i = 0; i < filter_number; ++i) {
+        filters.push_back(Matrix_3D(high, width, depth, true));
+        prevDeltaWeights.push_back(Matrix_3D(high, width, depth, false));
+    }
+}
+ConvolutionalLayer::ConvolutionalLayer(u_int filter_number, OutputMatrixLayer *prev_layer): Layer(layers::convolutional),
+                                                                                   InputMatrixLayer(layers::convolutional),
+                                                                                   OutputMatrixLayer(layers::convolutional),
+                                                                                   feature_maps(filter_number) {
+
+    assert(prev_layer != nullptr);
+
+    setPrevLayer(prev_layer);
+    Matrix_3D temp = prevLayer->getOut();
+
+    for (u_int i = 0; i < filter_number; ++i) {
+
+        filters.push_back(Matrix_3D(temp.getHigh(),
+                                    temp.getWidth(),
+                                    temp.getDepth(),
+                                    true));
+
+        prevDeltaWeights.push_back(Matrix_3D(temp.getHigh(),
+                                             temp.getWidth(),
+                                             temp.getDepth(),
+                                             false));
     }
 }
 void ConvolutionalLayer::work(Matrix_3D input_data) {
@@ -93,10 +116,6 @@ void ConvolutionalLayer::work(Matrix_3D input_data) {
 }
 
 Matrix_3D ConvolutionalLayer::getOut() {
-
-    assert(feature_maps.getHigh() != 0);
-    assert(feature_maps.getWidth() != 0);
-    assert(feature_maps.getDepth() != 0);
 
     return feature_maps;
 }
@@ -133,16 +152,27 @@ void ConvolutionalLayer::work() {
 }
 
 // RectifierLayer
-RectifierLayer::RectifierLayer(u_int size, float _ratio): Layer(layers::ReLU),
+RectifierLayer::RectifierLayer(u_int depth, float _ratio): Layer(layers::ReLU),
                                                           InputMatrixLayer(layers::ReLU),
                                                           OutputMatrixLayer(layers::ReLU),
-                                                          ratioReLU(_ratio), output_data(size) {
+                                                          ratioReLU(_ratio), output_data(depth) {
 
-    assert(size > 0);
+    assert(depth > 0);
 
-    for (u_int i = 0; i < size; ++i)
+    for (u_int i = 0; i < depth; ++i)
         bias_neurons.push_back(1.0f);
 
+}
+RectifierLayer::RectifierLayer(OutputMatrixLayer *prev_layer, float _ratio): Layer(layers::ReLU),
+                                                                             InputMatrixLayer(layers::ReLU),
+                                                                             OutputMatrixLayer(layers::ReLU),
+                                                                             ratioReLU(_ratio),
+                                                                             output_data(prev_layer->getOut().getDepth()) {
+
+    setPrevLayer(prev_layer);
+
+    for (u_int i = 0; i < output_data.getDepth(); ++i)
+        bias_neurons.push_back(1.0f);
 }
 void RectifierLayer::work(Matrix_3D input_data) {
 
@@ -175,11 +205,14 @@ PoolingLayer::PoolingLayer(u_int size, u_int _step): Layer(layers::pooling),
                                                      InputMatrixLayer(layers::pooling),
                                                      OutputMatrixLayer(layers::pooling),
                                                      step(_step), output(size) {}
+PoolingLayer::PoolingLayer(OutputMatrixLayer *prev_layer, u_int _step): Layer(layers::pooling),
+                                                                       InputMatrixLayer(layers::pooling),
+                                                                       OutputMatrixLayer(layers::pooling),
+                                                                       step(_step), output(prev_layer->getOut().getDepth()) {
+    setPrevLayer(prev_layer);
+}
 Matrix_3D PoolingLayer::getOut() {
 
-    assert(output.getHigh() != 0);
-    assert(output.getWidth() != 0);
-    
     return output;
 }
 void PoolingLayer::work(Matrix_3D input) {
@@ -256,6 +289,30 @@ TransferLayer::TransferLayer(u_int h, u_int w, u_int d): Layer(layers::transfer)
         }
     }
 
+}
+
+TransferLayer::TransferLayer(OutputMatrixLayer *prev_layer): Layer(layers::transfer),
+                                                             InputMatrixLayer(layers::transfer),
+                                                             OutputNeuronLayer(layers::transfer),
+                                                             high(prev_layer->getOut().getHigh()),
+                                                             width(prev_layer->getOut().getWidth()),
+                                                             depth(prev_layer->getOut().getDepth()) {
+
+    setPrevLayer(prev_layer);
+    // Комментарии смотри в предыдущем конструкторе
+
+    assert(high && width && depth);
+
+    for (u_int i = 0; i < depth; ++i) {
+        for (u_int j = 0; j < width; ++j) {
+            for (u_int k = 0; k < high; ++k) {
+                neurons.push_back(new InputNeuron());
+
+                Neuron* temp = neurons.back();
+                output_neurons.push_back(temp);
+            }
+        }
+    }
 }
 TransferLayer::~TransferLayer() {
     for (auto neuron: neurons)

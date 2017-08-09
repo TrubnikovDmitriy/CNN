@@ -58,10 +58,10 @@ protected:
 class OutputMatrixLayer:    protected virtual Layer {
 public:
     OutputMatrixLayer(layers type): Layer(type), nextLayer(nullptr) {};
-    virtual Matrix_3D getOut() = 0;
     void setNextLayer(InputMatrixLayer* next) {
         nextLayer = next;
     };
+    virtual Matrix_3D getOut() = 0;
     virtual void work() = 0;
 
 protected:
@@ -83,7 +83,8 @@ protected:
 
 class ConvolutionalLayer:   public InputMatrixLayer, public OutputMatrixLayer {
 public:
-    ConvolutionalLayer(u_int size, u_int width, u_int high, u_int depth);
+    ConvolutionalLayer(u_int filter_number, u_int width, u_int high, u_int depth);
+    ConvolutionalLayer(u_int filter_number, OutputMatrixLayer* prev_layer);
     ~ConvolutionalLayer() {};
 
     void updateKernel(vector<Matrix_3D> deltaWeights, float moment);
@@ -99,7 +100,8 @@ private:
 };
 class RectifierLayer:       public InputMatrixLayer, public OutputMatrixLayer {
 public:
-    RectifierLayer(u_int size, float ratio = -0.0f);
+    RectifierLayer(OutputMatrixLayer* prev_layer, float ratio = -0.0f);
+    RectifierLayer(u_int depth, float ratio = -0.0f);
     ~RectifierLayer() {};
 
     void work(Matrix_3D input_data);
@@ -116,6 +118,7 @@ private:
 class TransferLayer:        public InputMatrixLayer, public OutputNeuronLayer {
 public:
     TransferLayer(u_int high, u_int width, u_int depth);
+    TransferLayer(OutputMatrixLayer* prev_layer);
     ~TransferLayer();
 
     u_int getNeuronPosition(u_int h, u_int w, u_int d);
@@ -133,6 +136,7 @@ private:
 };
 class PoolingLayer:         public InputMatrixLayer, public OutputMatrixLayer {
 public:
+    PoolingLayer(OutputMatrixLayer* prev_layer, u_int step);
     PoolingLayer(u_int size, u_int step);
     ~PoolingLayer() {};
 
