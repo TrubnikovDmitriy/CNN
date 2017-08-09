@@ -35,13 +35,16 @@ int main() {
 
     cout << "ReLU" << endl;
     RectifierLayer ReLU(2, -0.0f);
-    ReLU.work(convol.getOut());
+    ReLU.setPrevLayer(&convol);
+    ReLU.work();
     ReLU.getOut().printMatrix_3D();
+
     cout << endl << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << endl;
 
     cout << "Pool" << endl;
     PoolingLayer pool(2, 2);
-    pool.work(ReLU.getOut());
+    pool.setPrevLayer(&ReLU);
+    pool.work();
     pool.getOut().printMatrix_3D();
     cout << endl << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << endl;
 
@@ -50,25 +53,27 @@ int main() {
     TransferLayer transfer(pool.getOut().getHigh(),
                            pool.getOut().getWidth(),
                            pool.getOut().getDepth());
-    transfer.work(pool.getOut());
+    transfer.setPrevLayer(&pool);
+    transfer.work();
     for (auto value: transfer.getOut())
         cout << value->getOut() << " ";
     cout << endl;
     cout << endl << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << endl;
 
-     cout << "Hidden #1" << endl;
+
+    cout << "Hidden #1" << endl;
     HiddenLayer hidden1(transfer.getOut(), 10);
     hidden1.work();
     for (auto value: hidden1.getOut())
-        cout << value->getOut() << " ";
+        printf("%5.2f ", value->getOut());
     cout << endl;
     cout << endl << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << endl;
 
     cout << "Hidden #2" << endl;
-    HiddenLayer hidden2(hidden1.getOut(), 2);
+    HiddenLayer hidden2(hidden1.getOut(), 3);
     hidden2.work();
     for (auto value: hidden2.getOut())
-        cout << value->getOut() << " ";
+        printf("%5.2f ", value->getOut());
     cout << endl;
     cout << endl << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << endl;
 

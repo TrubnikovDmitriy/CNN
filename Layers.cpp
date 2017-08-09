@@ -14,8 +14,9 @@ layers Layer::getType() {
 
 
 // HiddenLayer
-HiddenLayer::HiddenLayer(vector<Neuron*> input_neurons, u_int out_size):
-                                                    Layer(layers::hidden) {
+HiddenLayer::HiddenLayer(vector<Neuron*> input_neurons, u_int out_size): Layer(layers::hidden),
+                                                                         InputNeuronLayer(layers::hidden),
+                                                                         OutputNeuronLayer(layers::hidden) {
 
     // На вход подается предыдущий слой, текущий и предыдущие
     // слои жестко связываются с помощью синапсов.
@@ -66,8 +67,10 @@ vector<Neuron*> HiddenLayer::getOut() {
 }
 
 // ConvolutionalLayer
-ConvolutionalLayer::ConvolutionalLayer(u_int size, u_int width, u_int high, u_int depth):
-                                                Layer(layers::convolutional), feature_maps(size) {
+ConvolutionalLayer::ConvolutionalLayer(u_int size, u_int width, u_int high, u_int depth): Layer(layers::convolutional),
+                                                                                          InputMatrixLayer(layers::convolutional),
+                                                                                          OutputMatrixLayer(layers::convolutional),
+                                                                                          feature_maps(size) {
 
     for (u_int i = 0; i < size; ++i) {
         filters.push_back(Matrix_3D(width, high, depth, true));
@@ -123,11 +126,17 @@ void ConvolutionalLayer::updateKernel(vector<Matrix_3D> deltaWeights, float mome
         prevDeltaWeights[i] = deltaWeights[i];
     }
 }
+void ConvolutionalLayer::work() {
+
+    assert(prevLayer != nullptr);
+    work(prevLayer->getOut());
+}
 
 // RectifierLayer
 RectifierLayer::RectifierLayer(u_int size, float _ratio): Layer(layers::ReLU),
-                                                                            ratioReLU(_ratio),
-                                                                            output_data(size) {
+                                                          InputMatrixLayer(layers::ReLU),
+                                                          OutputMatrixLayer(layers::ReLU),
+                                                          ratioReLU(_ratio), output_data(size) {
 
     assert(size > 0);
 
@@ -155,9 +164,16 @@ float RectifierLayer::rectifier(float x) {
 
     return std::max(ratioReLU * x, x);
 }
+void RectifierLayer::work() {
+
+    assert(prevLayer != nullptr);
+    work(prevLayer->getOut());
+}
 
 // PoolingLayer
 PoolingLayer::PoolingLayer(u_int size, u_int _step): Layer(layers::pooling),
+                                                     InputMatrixLayer(layers::pooling),
+                                                     OutputMatrixLayer(layers::pooling),
                                                      step(_step), output(size) {}
 Matrix_3D PoolingLayer::getOut() {
 
@@ -205,9 +221,16 @@ float PoolingLayer::getMax(Matrix_3D& input, u_int h, u_int w, u_int d) {
 
     return max_value;
 }
+void PoolingLayer::work() {
+
+    assert(prevLayer != nullptr);
+    work(prevLayer->getOut());
+}
 
 // TransferLayer
 TransferLayer::TransferLayer(u_int h, u_int w, u_int d): Layer(layers::transfer),
+                                                         InputMatrixLayer(layers::transfer),
+                                                         OutputNeuronLayer(layers::transfer),
                                                          high(h), width(w), depth(d) {
 
     // Переходной слой - переход от трехмерной матрицы к нейронам,
@@ -261,4 +284,9 @@ vector<Neuron*> TransferLayer::getOut() {
 }
 u_int TransferLayer::getSize() {
     return high * width * depth;
+}
+void TransferLayer::work() {
+
+    assert(prevLayer != nullptr);
+    work(prevLayer->getOut());
 }
