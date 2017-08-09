@@ -67,37 +67,42 @@ vector<Neuron*> HiddenLayer::getOut() {
 }
 
 // ConvolutionalLayer
-ConvolutionalLayer::ConvolutionalLayer(u_int filter_number, u_int high, u_int width, u_int depth): Layer(layers::convolutional),
-                                                                                          InputMatrixLayer(layers::convolutional),
-                                                                                          OutputMatrixLayer(layers::convolutional),
-                                                                                          feature_maps(filter_number) {
+ConvolutionalLayer::ConvolutionalLayer(u_int filter_number,
+                                       u_int filter_high,
+                                       u_int filter_width,
+                                       u_int filter_depth): Layer(layers::convolutional),
+                                                            InputMatrixLayer(layers::convolutional),
+                                                            OutputMatrixLayer(layers::convolutional),
+                                                            feature_maps(filter_number) {
 
     for (u_int i = 0; i < filter_number; ++i) {
-        filters.push_back(Matrix_3D(high, width, depth, true));
-        prevDeltaWeights.push_back(Matrix_3D(high, width, depth, false));
+        filters.push_back(Matrix_3D(filter_high,
+                                    filter_width,
+                                    filter_depth, true));
+
+        prevDeltaWeights.push_back(Matrix_3D(filter_high,
+                                             filter_width,
+                                             filter_depth,
+                                             false));
     }
 }
-ConvolutionalLayer::ConvolutionalLayer(u_int filter_number, OutputMatrixLayer *prev_layer): Layer(layers::convolutional),
-                                                                                   InputMatrixLayer(layers::convolutional),
-                                                                                   OutputMatrixLayer(layers::convolutional),
-                                                                                   feature_maps(filter_number) {
-
-    assert(prev_layer != nullptr);
+ConvolutionalLayer::ConvolutionalLayer(u_int filter_number,
+                                       u_int filter_high,
+                                       u_int filter_width,
+                                       OutputMatrixLayer *prev_layer): Layer(layers::convolutional),
+                                                                       InputMatrixLayer(layers::convolutional),
+                                                                       OutputMatrixLayer(layers::convolutional),
+                                                                       feature_maps(filter_number) {
 
     setPrevLayer(prev_layer);
-    Matrix_3D temp = prevLayer->getOut();
 
     for (u_int i = 0; i < filter_number; ++i) {
 
-        filters.push_back(Matrix_3D(temp.getHigh(),
-                                    temp.getWidth(),
-                                    temp.getDepth(),
-                                    true));
+        filters.push_back(Matrix_3D(filter_high, filter_width,
+                                    prevLayer->getOut().getDepth(), true));
 
-        prevDeltaWeights.push_back(Matrix_3D(temp.getHigh(),
-                                             temp.getWidth(),
-                                             temp.getDepth(),
-                                             false));
+        prevDeltaWeights.push_back(Matrix_3D(filter_high, filter_width,
+                                             prevLayer->getOut().getDepth(), false));
     }
 }
 void ConvolutionalLayer::work(Matrix_3D input_data) {

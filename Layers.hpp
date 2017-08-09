@@ -83,8 +83,8 @@ protected:
 
 class ConvolutionalLayer:   public InputMatrixLayer, public OutputMatrixLayer {
 public:
-    ConvolutionalLayer(u_int filter_number, u_int width, u_int high, u_int depth);
-    ConvolutionalLayer(u_int filter_number, OutputMatrixLayer* prev_layer);
+    ConvolutionalLayer(u_int filter_number, u_int filter_high, u_int filter_width, u_int filter_depth);
+    ConvolutionalLayer(u_int filter_number, u_int filter_high, u_int filter_width, OutputMatrixLayer* prev_layer);
     ~ConvolutionalLayer() {};
 
     void updateKernel(vector<Matrix_3D> deltaWeights, float moment);
