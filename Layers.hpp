@@ -6,25 +6,12 @@
 #include "Matrix_3D.hpp"
 
 using std::vector;
-enum layers {
-    hidden = 0,
-    convolutional,
-    ReLU,
-    pooling,
-    average,
-    transfer
-};
 
 class Layer {
 public:
-    Layer(layers _type);
+    Layer() {};
     virtual ~Layer() {};
     virtual void work() = 0;
-
-    layers getType();
-
-protected:
-    const layers type;
 };
 
 class InputMatrixLayer;
@@ -34,7 +21,7 @@ class OutputNeuronLayer;
 
 class InputMatrixLayer:     public virtual Layer {
 public:
-    InputMatrixLayer(layers type): Layer(type), prevLayer(nullptr) {};
+    InputMatrixLayer(): prevLayer(nullptr) {};
     virtual void work(Matrix_3D input) = 0;
     void setPrevLayer(OutputMatrixLayer* prev) {
         prevLayer = prev;
@@ -46,7 +33,7 @@ protected:
 };
 class InputNeuronLayer:     public virtual Layer {
 public:
-    InputNeuronLayer(layers type): Layer(type), prevLayer(nullptr) {};
+    InputNeuronLayer(): prevLayer(nullptr) {};
     void setPrevLayer(OutputNeuronLayer* prev) {
         prevLayer = prev;
     };
@@ -57,7 +44,7 @@ protected:
 };
 class OutputMatrixLayer:    public virtual Layer {
 public:
-    OutputMatrixLayer(layers type): Layer(type), nextLayer(nullptr) {};
+    OutputMatrixLayer(): nextLayer(nullptr) {};
     void setNextLayer(InputMatrixLayer* next) {
         nextLayer = next;
     };
@@ -69,7 +56,7 @@ protected:
 };
 class OutputNeuronLayer:    public virtual Layer {
 public:
-    OutputNeuronLayer(layers type): Layer(type), nextLayer(nullptr) {};
+    OutputNeuronLayer(): nextLayer(nullptr) {};
     virtual vector<Neuron*> getOut() = 0;
     void setNextLayer(InputNeuronLayer* next) {
         nextLayer = next;

@@ -4,19 +4,8 @@
 #include <random>
 
 
-// Layer
-Layer::Layer(layers _type): type(_type) {
-
-}
-layers Layer::getType() {
-    return type;
-}
-
-
 // HiddenLayer
-HiddenLayer::HiddenLayer(vector<Neuron*> input_neurons, u_int out_size): Layer(layers::hidden),
-                                                                         InputNeuronLayer(layers::hidden),
-                                                                         OutputNeuronLayer(layers::hidden) {
+HiddenLayer::HiddenLayer(vector<Neuron*> input_neurons, u_int out_size) {
 
     // На вход подается предыдущий слой, текущий и предыдущие
     // слои жестко связываются с помощью синапсов.
@@ -70,10 +59,7 @@ vector<Neuron*> HiddenLayer::getOut() {
 ConvolutionalLayer::ConvolutionalLayer(u_int filter_number,
                                        u_int filter_high,
                                        u_int filter_width,
-                                       u_int filter_depth): Layer(layers::convolutional),
-                                                            InputMatrixLayer(layers::convolutional),
-                                                            OutputMatrixLayer(layers::convolutional),
-                                                            feature_maps(filter_number) {
+                                       u_int filter_depth): feature_maps(filter_number) {
 
     for (u_int i = 0; i < filter_number; ++i) {
         filters.push_back(Matrix_3D(filter_high,
@@ -86,13 +72,11 @@ ConvolutionalLayer::ConvolutionalLayer(u_int filter_number,
                                              false));
     }
 }
+
 ConvolutionalLayer::ConvolutionalLayer(u_int filter_number,
                                        u_int filter_high,
                                        u_int filter_width,
-                                       OutputMatrixLayer *prev_layer): Layer(layers::convolutional),
-                                                                       InputMatrixLayer(layers::convolutional),
-                                                                       OutputMatrixLayer(layers::convolutional),
-                                                                       feature_maps(filter_number) {
+                                       OutputMatrixLayer *prev_layer): feature_maps(filter_number) {
 
     setPrevLayer(prev_layer);
 
@@ -105,6 +89,7 @@ ConvolutionalLayer::ConvolutionalLayer(u_int filter_number,
                                              prevLayer->getOut().getDepth(), false));
     }
 }
+
 void ConvolutionalLayer::work(Matrix_3D input_data) {
 
     // На вход подается 3х-мерное изображение (высота, ширина, глубина - ex.RGB)
@@ -157,10 +142,8 @@ void ConvolutionalLayer::work() {
 }
 
 // RectifierLayer
-RectifierLayer::RectifierLayer(u_int depth, float _ratio): Layer(layers::ReLU),
-                                                          InputMatrixLayer(layers::ReLU),
-                                                          OutputMatrixLayer(layers::ReLU),
-                                                          ratioReLU(_ratio), output_data(depth) {
+RectifierLayer::RectifierLayer(u_int depth, float _ratio): ratioReLU(_ratio),
+                                                           output_data(depth) {
 
     assert(depth > 0);
 
@@ -168,10 +151,7 @@ RectifierLayer::RectifierLayer(u_int depth, float _ratio): Layer(layers::ReLU),
         bias_neurons.push_back(1.0f);
 
 }
-RectifierLayer::RectifierLayer(OutputMatrixLayer *prev_layer, float _ratio): Layer(layers::ReLU),
-                                                                             InputMatrixLayer(layers::ReLU),
-                                                                             OutputMatrixLayer(layers::ReLU),
-                                                                             ratioReLU(_ratio),
+RectifierLayer::RectifierLayer(OutputMatrixLayer *prev_layer, float _ratio): ratioReLU(_ratio),
                                                                              output_data(prev_layer->getOut().getDepth()) {
 
     setPrevLayer(prev_layer);
@@ -206,14 +186,9 @@ void RectifierLayer::work() {
 }
 
 // PoolingLayer
-PoolingLayer::PoolingLayer(u_int size, u_int _step): Layer(layers::pooling),
-                                                     InputMatrixLayer(layers::pooling),
-                                                     OutputMatrixLayer(layers::pooling),
-                                                     step(_step), output(size) {}
-PoolingLayer::PoolingLayer(OutputMatrixLayer *prev_layer, u_int _step): Layer(layers::pooling),
-                                                                       InputMatrixLayer(layers::pooling),
-                                                                       OutputMatrixLayer(layers::pooling),
-                                                                       step(_step), output(prev_layer->getOut().getDepth()) {
+PoolingLayer::PoolingLayer(u_int size, u_int _step): step(_step), output(size) {}
+PoolingLayer::PoolingLayer(OutputMatrixLayer *prev_layer, u_int _step): step(_step),
+                                                                        output(prev_layer->getOut().getDepth()) {
     setPrevLayer(prev_layer);
 }
 Matrix_3D PoolingLayer::getOut() {
@@ -266,10 +241,7 @@ void PoolingLayer::work() {
 }
 
 // TransferLayer
-TransferLayer::TransferLayer(u_int h, u_int w, u_int d): Layer(layers::transfer),
-                                                         InputMatrixLayer(layers::transfer),
-                                                         OutputNeuronLayer(layers::transfer),
-                                                         high(h), width(w), depth(d) {
+TransferLayer::TransferLayer(u_int h, u_int w, u_int d): high(h), width(w), depth(d) {
 
     // Переходной слой - переход от трехмерной матрицы к нейронам,
     // при создании необходимо указать размер входной 3х-мерной матрицы.
@@ -296,10 +268,7 @@ TransferLayer::TransferLayer(u_int h, u_int w, u_int d): Layer(layers::transfer)
 
 }
 
-TransferLayer::TransferLayer(OutputMatrixLayer *prev_layer): Layer(layers::transfer),
-                                                             InputMatrixLayer(layers::transfer),
-                                                             OutputNeuronLayer(layers::transfer),
-                                                             high(prev_layer->getOut().getHigh()),
+TransferLayer::TransferLayer(OutputMatrixLayer *prev_layer): high(prev_layer->getOut().getHigh()),
                                                              width(prev_layer->getOut().getWidth()),
                                                              depth(prev_layer->getOut().getDepth()) {
 
