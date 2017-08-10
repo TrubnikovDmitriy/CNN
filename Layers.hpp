@@ -32,7 +32,7 @@ class InputNeuronLayer;
 class OutputMatrixLayer;
 class OutputNeuronLayer;
 
-class InputMatrixLayer:     protected virtual Layer {
+class InputMatrixLayer:     public virtual Layer {
 public:
     InputMatrixLayer(layers type): Layer(type), prevLayer(nullptr) {};
     virtual void work(Matrix_3D input) = 0;
@@ -44,7 +44,7 @@ public:
 protected:
     OutputMatrixLayer* prevLayer;
 };
-class InputNeuronLayer:     protected virtual Layer {
+class InputNeuronLayer:     public virtual Layer {
 public:
     InputNeuronLayer(layers type): Layer(type), prevLayer(nullptr) {};
     void setPrevLayer(OutputNeuronLayer* prev) {
@@ -55,7 +55,7 @@ public:
 protected:
     OutputNeuronLayer* prevLayer;
 };
-class OutputMatrixLayer:    protected virtual Layer {
+class OutputMatrixLayer:    public virtual Layer {
 public:
     OutputMatrixLayer(layers type): Layer(type), nextLayer(nullptr) {};
     void setNextLayer(InputMatrixLayer* next) {
@@ -67,7 +67,7 @@ public:
 protected:
     InputMatrixLayer* nextLayer;
 };
-class OutputNeuronLayer:    protected virtual Layer {
+class OutputNeuronLayer:    public virtual Layer {
 public:
     OutputNeuronLayer(layers type): Layer(type), nextLayer(nullptr) {};
     virtual vector<Neuron*> getOut() = 0;

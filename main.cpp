@@ -27,7 +27,7 @@ int main() {
     cout << endl << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << endl;
 
 
-    cout << "Output data" << endl;
+    cout << "Feature maps №1" << endl;
     convol.work(input_data);
     convol.getOut().printMatrix_3D();
     cout << endl << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << endl;
@@ -43,7 +43,7 @@ int main() {
 
 
     cout << "Три фильтра" << endl;
-    ConvolutionalLayer convol2(3, 3, 3, &ReLU);
+    ConvolutionalLayer convol2(3, 2, 2, &ReLU);
     convol2.getOut();
     vector<Matrix_3D> filters2 = convol2.getFilters();
     for (u_int i = 0; i < filters2.size(); ++i) {
@@ -53,7 +53,7 @@ int main() {
     cout << endl << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << endl;
 
 
-    cout << "Output data" << endl;
+    cout << "Feature maps №2" << endl;
     convol2.work();
     convol2.getOut().printMatrix_3D();
     cout << endl << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << endl;
